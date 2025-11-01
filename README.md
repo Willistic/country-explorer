@@ -1,64 +1,89 @@
-# React + TypeScript + Vite
+# 🌍 Countries Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React application that displays country information with flags, capitals, and populations from around the world.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🏳️ **Country Flags**: Display flags for all countries
+- 🏛️ **Capital Cities**: Show capital cities for each country  
+- 👥 **Population Data**: Display formatted population numbers
+- 📱 **Responsive Design**: Beautiful, mobile-friendly interface
+- 📄 **Pagination**: Navigate through countries with 25 per page
+- 💾 **Persistent State**: Remembers your page position across refreshes
+- 🔄 **Alphabetical Order**: Countries automatically sorted A-Z
 
-## React Compiler
+## 🛠️ Technologies Used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** with TypeScript
+- **Redux Toolkit** for state management  
+- **Vite** for fast development and building
+- **CSS Modules** for component-scoped styling
+- **REST Countries API** for country data
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
+- Node.js (version 18 or higher)
+- npm or yarn
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/countries-explorer.git
+   cd countries-explorer
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser:**
+   Navigate to `http://localhost:5173`
+
+### Build for Production
+
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📁 Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```
+src/
+├── component/           # React components
+│   ├── CountryTable.tsx     # Main table component
+│   ├── Pagination.tsx       # Pagination controls
+│   └── *.module.css        # Component styles
+├── store/              # Redux store
+│   ├── countriesSlice.ts   # Countries state management
+│   ├── store.ts           # Store configuration
+│   └── hooks.ts           # Typed Redux hooks
+├── hooks/              # Custom React hooks
+└── App.tsx             # Main application component
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
+## 🌐 API
+
+This application uses the [REST Countries API](https://restcountries.com/) to fetch country data including:
+- Country names
+- Capital cities  
+- Population figures
+- Flag images
+
+## 📱 Screenshots
+
+The application displays a clean, modern interface with:
+- Responsive table design
+- Country flags and information
+- Smooth pagination controls
+- Loading and error states
       reactDom.configs.recommended,
     ],
     languageOptions: {
