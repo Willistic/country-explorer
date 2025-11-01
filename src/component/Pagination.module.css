@@ -1,0 +1,156 @@
+/* Pagination.module.css */
+
+.paginationContainer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: white;
+	padding: 20px 24px;
+	border-radius: 12px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	margin-top: 24px;
+	border: 1px solid #e5e7eb;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+
+.paginationInfo {
+	display: flex;
+	align-items: center;
+}
+
+.infoText {
+	font-size: 14px;
+	color: #6b7280;
+}
+
+.highlight {
+	font-weight: 600;
+	color: #374151;
+}
+
+.paginationControls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.pageNumbers {
+	display: flex;
+	gap: 4px;
+	margin: 0 8px;
+}
+
+.pageButton {
+	padding: 8px 12px;
+	border: 1px solid #d1d5db;
+	background: white;
+	color: #374151;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	min-width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pageButton:hover:not(:disabled) {
+	background: #f3f4f6;
+	border-color: #9ca3af;
+}
+
+.pageButton:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+	background: #f9fafb;
+}
+
+.navButton {
+	padding: 8px 16px;
+	font-weight: 500;
+}
+
+.navButton:hover:not(:disabled) {
+	background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+	color: white;
+	border-color: #3b82f6;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.activePage {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	border-color: #667eea;
+	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.activePage:hover {
+	background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+	transform: none;
+}
+
+.ellipsis {
+	cursor: default;
+	background: transparent;
+	border: none;
+	color: #9ca3af;
+}
+
+.ellipsis:hover {
+	background: transparent;
+	border: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+	.paginationContainer {
+		flex-direction: column;
+		text-align: center;
+		padding: 16px;
+	}
+
+	.paginationInfo {
+		order: 2;
+		margin-top: 12px;
+	}
+
+	.paginationControls {
+		order: 1;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.pageNumbers {
+		margin: 0 4px;
+	}
+
+	.pageButton {
+		padding: 6px 8px;
+		font-size: 12px;
+		min-width: 32px;
+	}
+
+	.navButton {
+		padding: 6px 12px;
+		font-size: 12px;
+	}
+}
+
+@media (max-width: 480px) {
+	.pageNumbers {
+		display: none;
+	}
+
+	.paginationControls {
+		gap: 12px;
+	}
+
+	.navButton {
+		flex: 1;
+		max-width: 120px;
+	}
+}
