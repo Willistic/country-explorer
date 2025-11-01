@@ -42,6 +42,7 @@ const CountryTable = () => {
 						<th className={styles.headerCell}>Country</th>
 						<th className={styles.headerCell}>Capital</th>
 						<th className={styles.headerCell}>Population</th>
+						<th className={styles.headerCell}>Region</th>
 					</tr>
 				</thead>
 				<tbody className={styles.tableBody}>
@@ -71,6 +72,11 @@ const CountryTable = () => {
 								className={`${styles.bodyCell} ${styles.population}`}
 							>
 								{country.population.toLocaleString()}
+							</td>
+							<td
+								className={`${styles.bodyCell} ${styles.region}`}
+							>
+								{country.region}
 							</td>
 						</tr>
 					))}

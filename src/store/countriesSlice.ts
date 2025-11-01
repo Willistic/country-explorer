@@ -10,10 +10,11 @@ export interface Country {
   name: {
     common: string;
     official?: string;
-  };
-  capital?: string[];
-  population: number;
-  flags: {
+    };
+    region: string;
+    capital?: string[];
+    population: number;
+    flags: {
     png: string;
     svg: string;
     alt?: string;
@@ -65,7 +66,7 @@ export const fetchCountries = createAsyncThunk(
   'countries/fetchCountries',
   async () => {
     const response = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,capital,population,flags'
+      'https://restcountries.com/v3.1/all?fields=name,capital,population,flags,region'
     );
     
     if (!response.ok) {

@@ -71,12 +71,12 @@
 .flagCell {
 	padding: 16px 20px;
 	text-align: center;
-	width: 80px;
+	width: 90px;
 }
 
 .flag {
-	width: 40px;
-	height: 28px;
+	width: 100px;
+	height: 100px;
 	border-radius: 4px;
 	object-fit: cover;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -96,6 +96,14 @@
 	font-family: "Monaco", "Menlo", monospace;
 	font-weight: 500;
 	color: #059669;
+}
+
+.region {
+	color: #7c3aed;
+	font-weight: 500;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
 .loadingContainer {
