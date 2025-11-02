@@ -1,16 +1,16 @@
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { setCurrentPage } from "../store/countriesSlice";
+import { setCurrentPage, fetchCountries } from "../store/countriesSlice";
 import styles from "./Pagination.module.css";
 
 const Pagination = () => {
 	const dispatch = useAppDispatch();
-	const { currentPage, totalPages, countries, itemsPerPage } = useAppSelector(
-		(state) => state.countries
-	);
+	const { currentPage, totalPages, itemsPerPage, totalCountries } =
+		useAppSelector((state) => state.countries);
 
 	const handlePageChange = (page: number) => {
 		if (page >= 1 && page <= totalPages) {
 			dispatch(setCurrentPage(page));
+			dispatch(fetchCountries({ page, limit: itemsPerPage }));
 		}
 	};
 
@@ -54,7 +54,7 @@ const Pagination = () => {
 	if (totalPages <= 1) return null;
 
 	const startItem = (currentPage - 1) * itemsPerPage + 1;
-	const endItem = Math.min(currentPage * itemsPerPage, countries.length);
+	const endItem = Math.min(currentPage * itemsPerPage, totalCountries);
 
 	return (
 		<div className={styles.paginationContainer}>
@@ -63,7 +63,7 @@ const Pagination = () => {
 					Showing{" "}
 					<span className={styles.highlight}>{startItem}</span> to{" "}
 					<span className={styles.highlight}>{endItem}</span> of{" "}
-					<span className={styles.highlight}>{countries.length}</span>{" "}
+					<span className={styles.highlight}>{totalCountries}</span>{" "}
 					countries
 				</span>
 			</div>

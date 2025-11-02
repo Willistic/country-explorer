@@ -1,0 +1,25 @@
+{
+	"name": "backend-api-tests",
+	"version": "1.0.0",
+	"description": "Comprehensive test suite for Country Explorer Backend API",
+	"scripts": {
+		"test": "jest",
+		"test:api": "tsx tests/api.test.ts",
+		"test:manual": "./test-backend.sh",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage"
+	},
+	"devDependencies": {
+		"@types/jest": "^29.5.5",
+		"@types/supertest": "^2.0.12",
+		"jest": "^29.7.0",
+		"supertest": "^6.3.3",
+		"tsx": "^3.12.7",
+		"typescript": "^5.2.2"
+	},
+	"jest": {
+		"preset": "ts-jest",
+		"testEnvironment": "node",
+		"testMatch": ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"]
+	}
+}

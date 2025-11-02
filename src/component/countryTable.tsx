@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchCountries } from "../store/countriesSlice";
 import Pagination from "./Pagination";
@@ -9,16 +9,16 @@ const CountryTable = () => {
 	const { countries, loading, error, currentPage, itemsPerPage } =
 		useAppSelector((state) => state.countries);
 
-	// Calculate the countries to display on current page
-	const paginatedCountries = useMemo(() => {
-		const startIndex = (currentPage - 1) * itemsPerPage;
-		const endIndex = startIndex + itemsPerPage;
-		return countries.slice(startIndex, endIndex);
-	}, [countries, currentPage, itemsPerPage]);
+	// No client-side pagination needed - server handles pagination
+	const paginatedCountries = countries;
 
 	useEffect(() => {
-		dispatch(fetchCountries());
-	}, [dispatch]);
+		console.log("CountryTable: Fetching countries with:", {
+			page: currentPage,
+			limit: itemsPerPage,
+		});
+		dispatch(fetchCountries({ page: currentPage, limit: itemsPerPage }));
+	}, [dispatch, currentPage, itemsPerPage]);
 
 	if (loading) {
 		return (

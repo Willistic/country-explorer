@@ -29,6 +29,7 @@ interface CountriesState {
   currentPage: number;
   itemsPerPage: number;
   totalPages: number;
+  totalCountries: number; // Total from server
 }
 
 // Helper function to get initial page from localStorage
@@ -45,7 +46,9 @@ const getInitialPage = (): number => {
 const getInitialItemsPerPage = (): number => {
   try {
     const savedItemsPerPage = localStorage.getItem('countries-items-per-page');
-    return savedItemsPerPage ? parseInt(savedItemsPerPage, 10) : 25;
+    const parsed = savedItemsPerPage ? parseInt(savedItemsPerPage, 10) : 25;
+    // Ensure valid range, default to 25 if invalid
+    return parsed >= 5 && parsed <= 100 ? parsed : 25;
   } catch {
     return 25;
   }
@@ -59,22 +62,41 @@ const initialState: CountriesState = {
   currentPage: getInitialPage(),
   itemsPerPage: getInitialItemsPerPage(),
   totalPages: 0,
+  totalCountries: 0,
 };
 
 // Create async thunk for fetching countries
 export const fetchCountries = createAsyncThunk(
   'countries/fetchCountries',
-  async () => {
-    const response = await fetch(
-      'https://restcountries.com/v3.1/all?fields=name,capital,population,flags,region'
-    );
+  async (params?: { page?: number; limit?: number; search?: string; region?: string }) => {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    const searchParams = new URLSearchParams();
+    
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.region) searchParams.set('region', params.region);
+    
+    const url = `${baseUrl}/countries${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    console.log('fetchCountries: Making API call to:', url);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error('Failed to fetch countries');
     }
     
-    const data = await response.json();
-    return data as Country[];
+    const result = await response.json();
+    
+    // Backend returns { success: true, data: Country[], pagination: {...} }
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch countries');
+    }
+    
+    return {
+      countries: result.data as Country[],
+      pagination: result.pagination
+    };
   }
 );
 
@@ -88,14 +110,15 @@ const countriesSlice = createSlice({
       state.countries = [];
       state.currentPage = 1;
       state.totalPages = 0;
+      state.totalCountries = 0;
       // Save to localStorage
       localStorage.setItem('countries-current-page', '1');
     },
     setCountries: (state, action: PayloadAction<Country[]>) => {
       state.countries = sortCountriesAlphabetically(action.payload);
-      state.totalPages = Math.ceil(state.countries.length / state.itemsPerPage);
+      // Note: totalPages should be set by server response, not calculated locally
       // Don't reset to page 1 if we have countries and a valid current page
-      if (state.currentPage > state.totalPages) {
+      if (state.currentPage > state.totalPages && state.totalPages > 0) {
         state.currentPage = 1;
         localStorage.setItem('countries-current-page', '1');
       }
@@ -107,11 +130,11 @@ const countriesSlice = createSlice({
     },
     setItemsPerPage: (state, action: PayloadAction<number>) => {
       state.itemsPerPage = action.payload;
-      state.totalPages = Math.ceil(state.countries.length / action.payload);
       state.currentPage = 1;
       // Save to localStorage
       localStorage.setItem('countries-items-per-page', action.payload.toString());
       localStorage.setItem('countries-current-page', '1');
+      // Note: Will need to trigger fetchCountries after this action
     },
   },
   extraReducers: (builder) => {
@@ -123,8 +146,9 @@ const countriesSlice = createSlice({
       })
       .addCase(fetchCountries.fulfilled, (state, action) => {
         state.loading = false;
-        state.countries = sortCountriesAlphabetically(action.payload);
-        state.totalPages = Math.ceil(state.countries.length / state.itemsPerPage);
+        state.countries = sortCountriesAlphabetically(action.payload.countries);
+        state.totalCountries = action.payload.pagination.total;
+        state.totalPages = action.payload.pagination.totalPages;
         
         // Only reset to page 1 if the current page is invalid
         if (state.currentPage > state.totalPages || state.currentPage < 1) {
