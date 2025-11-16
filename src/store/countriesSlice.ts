@@ -79,24 +79,38 @@ export const fetchCountries = createAsyncThunk(
     
     const url = `${baseUrl}/countries${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
     console.log('fetchCountries: Making API call to:', url);
+    console.log('fetchCountries: Using base URL:', baseUrl);
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch countries');
+    try {
+      const response = await fetch(url);
+      console.log('fetchCountries: Response status:', response.status);
+      console.log('fetchCountries: Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        console.error('fetchCountries: API error:', response.status, response.statusText);
+        throw new Error(`Failed to fetch countries: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('fetchCountries: Success! Data received:', { 
+        totalCountries: result.total, 
+        currentPage: result.page, 
+        dataLength: result.data?.length 
+      });
+      
+      // Backend returns { success: true, data: Country[], pagination: {...} }
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch countries');
+      }
+      
+      return {
+        countries: result.data as Country[],
+        pagination: result.pagination
+      };
+    } catch (error) {
+      console.error('fetchCountries: Request failed:', error);
+      throw error;
     }
-    
-    const result = await response.json();
-    
-    // Backend returns { success: true, data: Country[], pagination: {...} }
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch countries');
-    }
-    
-    return {
-      countries: result.data as Country[],
-      pagination: result.pagination
-    };
   }
 );
 

@@ -75,8 +75,14 @@ export const register = async (req: Request, res: Response): Promise<Response> =
 
     return res.status(201).json({
       success: true,
-      data: userResponse,
-      token,
+      data: {
+        user: userResponse,
+        tokens: {
+          accessToken: token,
+          refreshToken: token, // Using same token for now
+          expiresIn: process.env.JWT_EXPIRE || '7d'
+        }
+      },
       message: 'User registered successfully'
     });
   } catch (error: any) {
@@ -142,8 +148,14 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
     return res.json({
       success: true,
-      data: userResponse,
-      token,
+      data: {
+        user: userResponse,
+        tokens: {
+          accessToken: token,
+          refreshToken: token, // Using same token for now
+          expiresIn: process.env.JWT_EXPIRE || '7d'
+        }
+      },
       message: 'Login successful'
     });
   } catch (error: any) {
