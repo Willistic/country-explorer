@@ -83,20 +83,12 @@ export const fetchCountries = createAsyncThunk(
     
     try {
       const response = await fetch(url);
-      console.log('fetchCountries: Response status:', response.status);
-      console.log('fetchCountries: Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
-        console.error('fetchCountries: API error:', response.status, response.statusText);
         throw new Error(`Failed to fetch countries: ${response.status} ${response.statusText}`);
       }
       
       const result = await response.json();
-      console.log('fetchCountries: Success! Data received:', { 
-        totalCountries: result.total, 
-        currentPage: result.page, 
-        dataLength: result.data?.length 
-      });
       
       // Backend returns { success: true, data: Country[], pagination: {...} }
       if (!result.success) {
