@@ -78,8 +78,6 @@ export const fetchCountries = createAsyncThunk(
     if (params?.region) searchParams.set('region', params.region);
     
     const url = `${baseUrl}/countries${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
-    console.log('fetchCountries: Making API call to:', url);
-    console.log('fetchCountries: Using base URL:', baseUrl);
     
     try {
       const response = await fetch(url);
