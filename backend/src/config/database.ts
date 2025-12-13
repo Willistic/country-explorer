@@ -6,8 +6,6 @@ export const connectDatabase = async (): Promise<void> => {
     
     const conn = await mongoose.connect(mongoUri, {
       // Modern mongoose doesn't need these options but keeping for clarity
-      // useNewUrlParser: true,
-      // useUnifiedTopology: true,
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);

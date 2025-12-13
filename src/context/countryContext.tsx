@@ -5,7 +5,6 @@ type Props = { children: ReactNode };
 
 const CountryProvider = ({ children }: Props) => {
 	const [countries, setCountries] = useState<Country[]>([]);
-	console.log("countries", countries);
 
 	useEffect(() => {
 		const fetchCountries = async () => {
