@@ -23,14 +23,12 @@ async function createDemoUser() {
 			process.env.MONGODB_URI ||
 			"mongodb://localhost:27017/country-explorer";
 		await mongoose.connect(mongoUri);
-		console.log("Connected to MongoDB");
 
 		// Check if demo user exists
 		const existing = await User.findOne({
 			email: "demo@countryexplorer.com",
 		});
 		if (existing) {
-			console.log("Demo user already exists!");
 			await mongoose.connection.close();
 			return;
 		}

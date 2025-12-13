@@ -13,10 +13,6 @@ const CountryTable = () => {
 	const paginatedCountries = countries;
 
 	useEffect(() => {
-		console.log("CountryTable: Fetching countries with:", {
-			page: currentPage,
-			limit: itemsPerPage,
-		});
 		dispatch(fetchCountries({ page: currentPage, limit: itemsPerPage }));
 	}, [dispatch, currentPage, itemsPerPage]);
 
