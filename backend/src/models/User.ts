@@ -64,12 +64,10 @@ UserSchema.pre<IUser>('save', async function(next) {
   }
 });
 
-// Compare password method
 UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Get full name method
 UserSchema.methods.getFullName = function(): string {
   return `${this.firstName} ${this.lastName}`;
 };
