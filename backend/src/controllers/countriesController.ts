@@ -6,6 +6,84 @@ import { Country, CountriesResponse, CountryQueryParams } from '../types/index.j
 // Cache for 1 hour (3600 seconds)
 const cache = new NodeCache({ stdTTL: 3600 });
 
+// REST Countries v5 API configuration.
+// Read lazily at call time: with ES modules, top-level reads would run before
+// server.ts calls dotenv.config(), leaving these undefined.
+const apiBaseUrl = () => process.env.COUNTRIES_API_URL || 'https://api.restcountries.com/countries/v5';
+
+// Dot-path fields requested from the v5 API
+const V5_FIELDS = [
+  'names.common',
+  'names.official',
+  'capitals',
+  'region',
+  'subregion',
+  'population',
+  'area',
+  'flag.url_png',
+  'flag.url_svg',
+  'flag.description',
+  'codes.alpha_3'
+].join(',');
+
+const authHeaders = () => ({ Authorization: `Bearer ${process.env.RESTCOUNTRIES_API_KEY || ''}` });
+
+// Shape of a country object returned by the v5 API (only the fields we request)
+interface V5Country {
+  names?: { common?: string; official?: string };
+  capitals?: Array<{ name?: string }>;
+  region?: string;
+  subregion?: string;
+  population?: number;
+  area?: { kilometers?: number; miles?: number };
+  flag?: { url_png?: string; url_svg?: string; description?: string };
+  codes?: { alpha_3?: string };
+}
+
+// Map a v5 country object onto the app's Country shape
+const mapV5Country = (c: V5Country): Country => ({
+  name: { common: c.names?.common ?? '', official: c.names?.official },
+  region: c.region ?? '',
+  subregion: c.subregion,
+  capital: Array.isArray(c.capitals)
+    ? c.capitals.map(cap => cap?.name).filter((n): n is string => Boolean(n))
+    : [],
+  population: c.population ?? 0,
+  area: c.area?.kilometers,
+  flags: {
+    png: c.flag?.url_png ?? '',
+    svg: c.flag?.url_svg ?? '',
+    alt: c.flag?.description || undefined
+  }
+});
+
+// Fetch every country from the v5 API, paging through the free-plan 100/page cap
+const fetchAllCountriesFromApi = async (): Promise<Country[]> => {
+  const pageSize = 100;
+  let offset = 0;
+  const all: Country[] = [];
+
+  // Guard against runaway loops (dataset is ~254 countries)
+  for (let i = 0; i < 20; i++) {
+    const response = await axios.get(apiBaseUrl(), {
+      headers: authHeaders(),
+      params: { limit: pageSize, offset, response_fields: V5_FIELDS }
+    });
+
+    const objects = response.data?.data?.objects;
+    if (!Array.isArray(objects)) {
+      throw new Error('External API returned an unexpected response shape');
+    }
+
+    all.push(...(objects as V5Country[]).map(mapV5Country));
+
+    if (!response.data.data.meta?.more) break;
+    offset += pageSize;
+  }
+
+  return all;
+};
+
 export const getAllCountries = async (req: Request, res: Response): Promise<Response> => {
   try {
     const {
@@ -28,11 +106,8 @@ export const getAllCountries = async (req: Request, res: Response): Promise<Resp
     let countries: Country[] = [];
 
     try {
-      // Try to fetch from external API first
-      const response = await axios.get(
-        'https://restcountries.com/v3.1/all?fields=name,capital,region,population,flags'
-      );
-      countries = response.data;
+      // Fetch all countries from the REST Countries v5 API
+      countries = await fetchAllCountriesFromApi();
     } catch (externalApiError) {
       console.warn('External API failed, using sample data:', externalApiError);
       
@@ -170,14 +245,15 @@ export const getAllCountries = async (req: Request, res: Response): Promise<Resp
 export const getCountryById = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
-    
-    // For now, we'll fetch from the external API
-    // Later this will query the database
+
+    // Exact, case-insensitive lookup by common name via the v5 API
     const response = await axios.get(
-      `https://restcountries.com/v3.1/name/${id}?fullText=true&fields=name,capital,population,flags,region,subregion,area,languages,currencies,timezones,borders`
+      `${apiBaseUrl()}/names.common/${encodeURIComponent(id)}`,
+      { headers: authHeaders(), params: { response_fields: V5_FIELDS } }
     );
 
-    if (!response.data || response.data.length === 0) {
+    const objects = response.data?.data?.objects as V5Country[] | undefined;
+    if (!Array.isArray(objects) || objects.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Country not found',
@@ -187,7 +263,7 @@ export const getCountryById = async (req: Request, res: Response): Promise<Respo
 
     return res.json({
       success: true,
-      data: response.data[0]
+      data: mapV5Country(objects[0])
     });
   } catch (error: any) {
     if (error.response && error.response.status === 404) {
@@ -225,15 +301,19 @@ export const searchCountries = async (req: Request, res: Response): Promise<Resp
       return res.json(cachedData);
     }
 
-    // Search in external API
-    const response = await axios.get(
-      `https://restcountries.com/v3.1/name/${encodeURIComponent(q)}?fields=name,capital,population,flags,region`
-    );
+    // Search across all name variants via the v5 "name" aggregate endpoint
+    const response = await axios.get(`${apiBaseUrl()}/name`, {
+      headers: authHeaders(),
+      params: { q, response_fields: V5_FIELDS }
+    });
+
+    const objects = (response.data?.data?.objects as V5Country[] | undefined) ?? [];
+    const data = objects.map(mapV5Country);
 
     const result = {
       success: true,
-      data: response.data || [],
-      message: `Found ${response.data?.length || 0} countries matching "${q}"`
+      data,
+      message: `Found ${data.length} countries matching "${q}"`
     };
 
     cache.set(cacheKey, result);
