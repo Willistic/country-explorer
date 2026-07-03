@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import NodeCache from 'node-cache';
 import axios from 'axios';
 import { Country, CountriesResponse, CountryQueryParams } from '../types/index.js';
+import { getErrorMessage } from '../utils/getErrorMessage.js';
 
 // Cache for 1 hour (3600 seconds)
 const cache = new NodeCache({ stdTTL: 3600 });
@@ -188,8 +189,8 @@ export const getAllCountries = async (req: Request, res: Response): Promise<Resp
 
     // Apply sorting
     countries.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let aValue: string | number;
+      let bValue: string | number;
 
       switch (sortBy) {
         case 'population':
@@ -231,12 +232,12 @@ export const getAllCountries = async (req: Request, res: Response): Promise<Resp
     cache.set(cacheKey, result);
 
     return res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching countries:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch countries',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -265,8 +266,8 @@ export const getCountryById = async (req: Request, res: Response): Promise<Respo
       success: true,
       data: mapV5Country(objects[0])
     });
-  } catch (error: any) {
-    if (error.response && error.response.status === 404) {
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return res.status(404).json({
         success: false,
         error: 'Country not found',
@@ -277,7 +278,7 @@ export const getCountryById = async (req: Request, res: Response): Promise<Respo
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch country',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -318,8 +319,8 @@ export const searchCountries = async (req: Request, res: Response): Promise<Resp
 
     cache.set(cacheKey, result);
     return res.json(result);
-  } catch (error: any) {
-    if (error.response && error.response.status === 404) {
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       return res.json({
         success: true,
         data: [],
@@ -330,7 +331,7 @@ export const searchCountries = async (req: Request, res: Response): Promise<Resp
     return res.status(500).json({
       success: false,
       error: 'Search failed',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -346,11 +347,11 @@ export const syncCountriesData = async (req: Request, res: Response): Promise<Re
       success: true,
       message: 'Countries data synced successfully (cache cleared)'
     });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to sync countries data',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }

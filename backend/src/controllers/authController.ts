@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import Joi from 'joi';
 import User from '../models/User.js';
+import { getErrorMessage } from '../utils/getErrorMessage.js';
 
 // Validation schemas
 const registerSchema = Joi.object({
@@ -20,7 +21,8 @@ const loginSchema = Joi.object({
 const generateToken = (userId: string): string => {
   const secret = process.env.JWT_SECRET || 'fallback-secret';
   const expiresIn = process.env.JWT_EXPIRE || '7d';
-  return jwt.sign({ userId }, secret, { expiresIn } as any);
+  const options: SignOptions = { expiresIn: expiresIn as SignOptions['expiresIn'] };
+  return jwt.sign({ userId }, secret, options);
 };
 
 // Register new user
@@ -60,7 +62,7 @@ export const register = async (req: Request, res: Response): Promise<Response> =
     await user.save();
 
     // Generate token
-    const token = generateToken((user as any)._id.toString());
+    const token = generateToken(String(user._id));
 
     // Return user data (without password)
     const userResponse = {
@@ -85,12 +87,12 @@ export const register = async (req: Request, res: Response): Promise<Response> =
       },
       message: 'User registered successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     return res.status(500).json({
       success: false,
       error: 'Registration failed',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -133,7 +135,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
     }
 
     // Generate token
-    const token = generateToken((user as any)._id.toString());
+    const token = generateToken(String(user._id));
 
     // Return user data (without password)
     const userResponse = {
@@ -158,12 +160,12 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       },
       message: 'Login successful'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({
       success: false,
       error: 'Login failed',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -172,7 +174,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 // Get user profile
 export const getProfile = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const userId = (req as any).userId; // From auth middleware
+    const userId = req.userId; // From auth middleware
 
     const user = await User.findById(userId);
     if (!user) {
@@ -197,12 +199,12 @@ export const getProfile = async (req: Request, res: Response): Promise<Response>
       success: true,
       data: userResponse
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Get profile error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to get profile',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -211,10 +213,10 @@ export const getProfile = async (req: Request, res: Response): Promise<Response>
 // Update user profile
 export const updateProfile = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId;
     const { firstName, lastName } = req.body;
 
-    const updateData: any = {};
+    const updateData: { firstName?: string; lastName?: string } = {};
     if (firstName) updateData.firstName = firstName;
     if (lastName) updateData.lastName = lastName;
 
@@ -255,12 +257,12 @@ export const updateProfile = async (req: Request, res: Response): Promise<Respon
       data: userResponse,
       message: 'Profile updated successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Update profile error:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to update profile',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -269,7 +271,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<Respon
 // Add country to favorites
 export const addToFavorites = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId;
     const { countryId } = req.params;
 
     const user = await User.findById(userId);
@@ -291,11 +293,11 @@ export const addToFavorites = async (req: Request, res: Response): Promise<Respo
       data: { favorites: user.favorites },
       message: 'Country added to favorites'
     });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to add to favorites',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }
@@ -304,7 +306,7 @@ export const addToFavorites = async (req: Request, res: Response): Promise<Respo
 // Remove country from favorites
 export const removeFromFavorites = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId;
     const { countryId } = req.params;
 
     const user = await User.findById(userId);
@@ -324,11 +326,11 @@ export const removeFromFavorites = async (req: Request, res: Response): Promise<
       data: { favorites: user.favorites },
       message: 'Country removed from favorites'
     });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: 'Failed to remove from favorites',
-      details: error.message,
+      details: getErrorMessage(error),
       statusCode: 500
     });
   }

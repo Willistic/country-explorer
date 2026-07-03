@@ -2,19 +2,14 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-interface AuthenticatedRequest extends Request {
-  userId?: string;
-  user?: any;
-}
-
 export const authenticate = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = (req as any).headers.authorization?.replace('Bearer ', '');
-    
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
     if (!token) {
       res.status(401).json({
         success: false,
@@ -27,7 +22,7 @@ export const authenticate = async (
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'fallback-secret'
-    ) as any;
+    ) as { userId: string };
 
     // Find user and attach to request
     const user = await User.findById(decoded.userId);
@@ -44,16 +39,16 @@ export const authenticate = async (
     req.user = user;
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid token',
-        statusCode: 401
-      });
-    } else if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof jwt.TokenExpiredError) {
       res.status(401).json({
         success: false,
         error: 'Token expired',
+        statusCode: 401
+      });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid token',
         statusCode: 401
       });
     } else {
@@ -67,13 +62,13 @@ export const authenticate = async (
 };
 
 export const optionalAuth = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = (req as any).headers.authorization?.replace('Bearer ', '');
-    
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
     if (!token) {
       // No token provided, continue without authentication
       next();
@@ -83,7 +78,7 @@ export const optionalAuth = async (
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'fallback-secret'
-    ) as any;
+    ) as { userId: string };
 
     const user = await User.findById(decoded.userId);
     if (user) {
@@ -92,7 +87,7 @@ export const optionalAuth = async (
     }
 
     next();
-  } catch (error) {
+  } catch {
     // If token is invalid, just continue without authentication
     next();
   }

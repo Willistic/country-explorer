@@ -1,0 +1,44 @@
+services:
+    mongo:
+        image: mongo:7
+        restart: unless-stopped
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo-data:/data/db
+        healthcheck:
+            test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    backend:
+        build:
+            context: ./backend
+        restart: unless-stopped
+        depends_on:
+            mongo:
+                condition: service_healthy
+        environment:
+            NODE_ENV: production
+            PORT: 5001
+            MONGODB_URI: mongodb://mongo:27017/country-explorer
+            FRONTEND_URL: http://localhost:5173
+            JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+            JWT_EXPIRE: 7d
+        ports:
+            - "5001:5001"
+
+    frontend:
+        build:
+            context: .
+            args:
+                VITE_API_URL: http://localhost:5001/api/v1
+        restart: unless-stopped
+        depends_on:
+            - backend
+        ports:
+            - "5173:80"
+
+volumes:
+    mongo-data:

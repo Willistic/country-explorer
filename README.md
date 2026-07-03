@@ -1,5 +1,8 @@
 # 🌍 Country Explorer
 
+[![CI](https://github.com/Willistic/country-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/Willistic/country-explorer/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Willistic/country-explorer/branch/main/graph/badge.svg)](https://codecov.io/gh/Willistic/country-explorer)
+
 A full-stack web application that displays comprehensive country information with an elegant, responsive interface. Built with React 19, TypeScript, Express.js, and MongoDB.
 
 ## ✨ Features
@@ -53,6 +56,28 @@ A full-stack web application that displays comprehensive country information wit
 - **Node.js** (version 18 or higher)
 - **MongoDB** (version 6 or higher)
 - **npm** or **yarn**
+
+### 🐳 Run with Docker
+
+The fastest way to run the whole stack (MongoDB + API + frontend) with a
+single command:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5001/api/v1
+- MongoDB: localhost:27017
+
+Set a strong `JWT_SECRET` before starting in any shared environment:
+
+```bash
+JWT_SECRET=$(openssl rand -base64 32) docker compose up --build
+```
+
+Stop and remove the containers with `docker compose down` (add `-v` to also
+drop the MongoDB volume).
 
 ### 🎯 One-Command Setup
 
