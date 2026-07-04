@@ -69,7 +69,7 @@ const initialState: CountriesState = {
 export const fetchCountries = createAsyncThunk(
   'countries/fetchCountries',
   async (params?: { page?: number; limit?: number; search?: string; region?: string }) => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
     const searchParams = new URLSearchParams();
     
     if (params?.page) searchParams.set('page', params.page.toString());

@@ -31,12 +31,31 @@ export const createApp = (): express.Express => {
   // Middleware
   app.use(helmet()); // Security headers
   app.use(compression()); // Gzip compression
+
+  // Allowed browser origins. FRONTEND_URL may be a single URL or a
+  // comma-separated list (e.g. production Netlify site + preview URL).
+  // Local dev origins are always allowed. Trailing slashes are stripped so
+  // "https://site.netlify.app/" matches the browser's "https://site.netlify.app".
+  const allowedOrigins = [
+    ...(process.env.FRONTEND_URL ?? '').split(','),
+    'http://localhost:5173',
+    'http://localhost:5174'
+  ]
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+
   app.use(cors({
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      'http://localhost:5173',
-      'http://localhost:5174'
-    ],
+    origin(origin, callback) {
+      // Allow non-browser clients (no Origin header) such as curl and health checks.
+      if (!origin) {
+        return callback(null, true);
+      }
+      const normalized = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
     credentials: true
   }));
   app.use(express.json({ limit: '10mb' }));
