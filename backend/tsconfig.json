@@ -11,11 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["./*"],
-      "@/types": ["./types/index"]
-    },
     "resolveJsonModule": true,
     "declaration": true,
     "sourceMap": true,
